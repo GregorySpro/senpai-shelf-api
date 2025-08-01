@@ -27,6 +27,28 @@ app.get('/users', async (req, res) => {
   }
 });
 
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+
+  // Vérification minimale (évite les null/undefined vides)
+  if (!username || !password) {
+    return res.status(400).json({ error: 'username et password requis' });
+  }
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
+      [username, password]
+    );
+
+    res.status(201).json({ message: 'Utilisateur enregistré', user: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur lors de l\'enregistrement' });
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`Serveur en ligne sur le port ${port}`);
 });
