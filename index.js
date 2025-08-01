@@ -35,6 +35,17 @@ app.post('/register', async (req, res) => {
   }
 
   try {
+    // 1. Vérifier si username existe déjà
+    const existingUser = await pool.query(
+      'SELECT * FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ error: 'Nom d\'utilisateur déjà pris' });
+    }
+
+    // 2. Insérer l'utilisateur
     const result = await pool.query(
       'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
       [username, password]
@@ -42,10 +53,11 @@ app.post('/register', async (req, res) => {
 
     res.status(201).json({ message: 'Utilisateur enregistré', user: result.rows[0] });
   } catch (err) {
-    console.error('[ERREUR REGISTER]', err); // Ajout pour debug
+    console.error('[ERREUR REGISTER]', err);
     res.status(500).json({ error: 'Erreur serveur lors de l\'enregistrement' });
   }
 });
+
 
 
 
