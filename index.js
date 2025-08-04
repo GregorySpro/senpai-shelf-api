@@ -58,6 +58,33 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Utilisateur inconnu' });
+    }
+
+    const user = result.rows[0];
+
+    if (password !== user.password) {
+      return res.status(401).json({ error: 'Mot de passe incorrect' });
+    }
+
+    res.status(200).json({ message: 'Connexion réussie', user: user.username });
+  } catch (err) {
+    console.error('Erreur login :', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 
 
 
